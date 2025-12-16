@@ -78,15 +78,25 @@ class AuthController {
         });
       }
 
-      const isPasswordValid = await JWTService.comparePassword(
-        password,
-        user.password
-      );
-      if (!isPasswordValid) {
+      // Vérifie le mot de passe et détecte un éventuel hash "legacy" (sans pepper)
+      // needsRehash=true => on déclenche une mise à niveau transparente du hash
+      const { valid, needsRehash } =
+        await JWTService.verifyPasswordAndDetectLegacy(password, user.password);
+      if (!valid) {
         return res.status(401).json({
           error: "Identifiants invalides",
           message: "Email ou mot de passe incorrect",
         });
+      }
+
+      // Si un hash "legacy" est détecté, on met à niveau immédiatement
+      // (ré-hachage avec paramètres actuels : pepper + salt rounds configurés)
+      if (needsRehash) {
+        try {
+          await User.updatePassword(user.id, password);
+        } catch (e) {
+          // Non bloquant pour la connexion, mais loggable si un logger existe
+        }
       }
 
       const userPayload = {

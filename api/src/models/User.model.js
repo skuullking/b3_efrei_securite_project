@@ -1,6 +1,6 @@
 const { pool } = require("../config/db.postgres");
 const Workout = require("./Workout.model");
-const bcrypt = require("bcrypt");
+const JWTService = require("../utils/jwt");
 
 class User {
   static async getAll() {
@@ -25,8 +25,10 @@ class User {
     return res.rows[0] || null;
   }
 
+  // Création : le mot de passe en clair est immédiatement haché via JWTService
+  // (bcrypt + pepper optionnel) avant insertion en base.
   static async create({ name, email, password }) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await JWTService.hashPassword(password);
     const res = await pool.query(
       "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email,  workouts_completed, last_login, created_at, updated_at",
       [name, email, hashedPassword]
@@ -42,8 +44,10 @@ class User {
     return res.rows[0] || null;
   }
 
+  // Mise à jour : on ré-hache toujours le mot de passe fourni avec la
+  // configuration actuelle (permet d'élever le niveau de sécurité au fil du temps).
   static async updatePassword(id, password) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await JWTService.hashPassword(password);
     const res = await pool.query(
       "UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, email,  workouts_completed, last_login, created_at, updated_at",
       [hashedPassword, id]
