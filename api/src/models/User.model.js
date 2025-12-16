@@ -1,6 +1,5 @@
 const { pool } = require("../config/db.postgres");
 const Workout = require("./Workout.model");
-const bcrypt = require("bcrypt");
 const JWTService = require("../utils/jwt");
 
 class User {
@@ -26,6 +25,8 @@ class User {
     return res.rows[0] || null;
   }
 
+  // Création : le mot de passe en clair est immédiatement haché via JWTService
+  // (bcrypt + pepper optionnel) avant insertion en base.
   static async create({ name, email, password }) {
     const hashedPassword = await JWTService.hashPassword(password);
     const res = await pool.query(
@@ -43,6 +44,8 @@ class User {
     return res.rows[0] || null;
   }
 
+  // Mise à jour : on ré-hache toujours le mot de passe fourni avec la
+  // configuration actuelle (permet d'élever le niveau de sécurité au fil du temps).
   static async updatePassword(id, password) {
     const hashedPassword = await JWTService.hashPassword(password);
     const res = await pool.query(

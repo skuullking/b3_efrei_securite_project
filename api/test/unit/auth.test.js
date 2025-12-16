@@ -98,7 +98,10 @@ describe("Auth Controller", () => {
       };
 
       User.getByEmail.mockResolvedValue(mockUser);
-      JWTService.comparePassword.mockResolvedValue(true);
+      JWTService.verifyPasswordAndDetectLegacy.mockResolvedValue({
+        valid: true,
+        needsRehash: false,
+      });
       JWTService.generateAccessToken.mockReturnValue("access-token");
       JWTService.generateRefreshToken.mockReturnValue("refresh-token");
       User.updateLastLogin.mockResolvedValue(mockUser);
@@ -106,7 +109,7 @@ describe("Auth Controller", () => {
       await AuthController.login(req, res, next);
 
       expect(User.getByEmail).toHaveBeenCalledWith("test@example.com");
-      expect(JWTService.comparePassword).toHaveBeenCalledWith(
+      expect(JWTService.verifyPasswordAndDetectLegacy).toHaveBeenCalledWith(
         "password123",
         "hashedpassword123"
       );
@@ -153,7 +156,10 @@ describe("Auth Controller", () => {
       };
 
       User.getByEmail.mockResolvedValue(mockUser);
-      JWTService.comparePassword.mockResolvedValue(false);
+      JWTService.verifyPasswordAndDetectLegacy.mockResolvedValue({
+        valid: false,
+        needsRehash: false,
+      });
 
       await AuthController.login(req, res, next);
 
