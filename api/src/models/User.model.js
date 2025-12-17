@@ -3,16 +3,20 @@ const Workout = require("./Workout.model");
 const JWTService = require("../utils/jwt");
 
 class User {
-  static async getAll() {
+  static async getAll(page = 1, pagesize = 10) {
     const res = await pool.query(
-      "SELECT id, name, email,  workouts_completed, last_login, created_at, updated_at FROM users ORDER BY id"
+      "SELECT id, firstname, lastname, pseudonym, email, roles, birthdate, last_login, created_at, updated_at FROM users ORDER BY id"
     );
-    return res.rows;
+    console.log(page, pagesize);
+    const start = (page - 1) * pagesize;
+    const end = start + pagesize;
+    const result = res.rows.slice(start, end);
+    return result;
   }
 
   static async getById(id) {
     const res = await pool.query(
-      "SELECT id, name, email,  workouts_completed, last_login, created_at, updated_at FROM users WHERE id = $1",
+      "SELECT id, firstname, lastname, pseudonym, email, roles, birthdate, last_login, created_at, updated_at FROM users WHERE id = $1",
       [id]
     );
     return res.rows[0] || null;
@@ -27,19 +31,29 @@ class User {
 
   // Création : le mot de passe en clair est immédiatement haché via JWTService
   // (bcrypt + pepper optionnel) avant insertion en base.
-  static async create({ name, email, password }) {
+  static async create({
+    firstname,
+    lastname,
+    pseudonym,
+    email,
+    password,
+    birthdate,
+  }) {
     const hashedPassword = await JWTService.hashPassword(password);
     const res = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email,  workouts_completed, last_login, created_at, updated_at",
-      [name, email, hashedPassword]
+      "INSERT INTO users (firstname,lastname, pseudonym, email, password, birthdate) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, firstname, email,  workouts_completed, last_login, created_at, updated_at",
+      [firstname, lastname, pseudonym, email, hashedPassword, birthdate]
     );
     return res.rows[0];
   }
 
-  static async update(id, { name, email }) {
+  static async update(
+    id,
+    { firstname, lastname, pseudonym, email, birthdate }
+  ) {
     const res = await pool.query(
-      "UPDATE users SET name = $1, email = $2,  updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING id, name, email,  workouts_completed, last_login, created_at, updated_at",
-      [name, email, id]
+      "UPDATE users SET firstname = $1, lastname = $2, pseudonym = $3, email = $4, birthdate = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING id, firstname, lastname, pseudonym, email, birthdate, last_login, created_at, updated_at",
+      [firstname, lastname, pseudonym, email, birthdate, id]
     );
     return res.rows[0] || null;
   }
@@ -57,31 +71,10 @@ class User {
 
   static async updateLastLogin(id, lastLogin) {
     const res = await pool.query(
-      "UPDATE users SET last_login = $1 WHERE id = $2 RETURNING id, name, email,  workouts_completed, last_login, created_at, updated_at",
+      "UPDATE users SET last_login = $1 WHERE id = $2 RETURNING id, firstname, lastname, pseudonym, email, birthdate, last_login, created_at, updated_at",
       [lastLogin, id]
     );
     return res.rows[0] || null;
-  }
-
-  static async incrementWorkoutsCompleted(id, workoutId) {
-    const res = await pool.query(
-      "UPDATE users SET workouts_completed = workouts_completed + 1 WHERE id = $1 RETURNING id, name, email,  workouts_completed, last_login, created_at, updated_at",
-      [id]
-    );
-
-    const user = res.rows[0];
-    if (!user) return null;
-
-    const workout = await Workout.getById(workoutId);
-    if (!workout) return null;
-
-    if (!workout.userId.includes(id)) {
-      workout.userId.push(id);
-    }
-
-    await workout.save();
-
-    return { user };
   }
 
   static async delete(id) {

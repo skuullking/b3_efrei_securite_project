@@ -1,3 +1,1 @@
-DROP TABLE IF EXISTS users status CASCADE;
-
-;
+DROP TABLE IF EXISTS users;
