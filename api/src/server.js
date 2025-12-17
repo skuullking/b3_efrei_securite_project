@@ -58,23 +58,56 @@ app.get("/api/test-db", async (req, res) => {
 });
 
 //init user table if needed
-app.get("/api/init-db", async (req, res) => {
-  console.log("object");
+const fs = require("fs");
+const path = require("path");
+
+app.get("/api/db/init", async (req, res) => {
   try {
-    await pool.query(`CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(100) NOT NULL,
-      email VARCHAR(255) NOT NULL UNIQUE,
-      password VARCHAR(255) NOT NULL,
-      workouts_completed INT DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      last_login TIMESTAMP NULL
-    );`);
+    const sqlFile = fs.readFileSync(
+      path.join(__dirname, "../sql/init.sql"),
+      "utf8"
+    );
+    await pool.query(sqlFile);
     res.json({ status: "Database initialized" });
   } catch (error) {
     res.status(500).json({
       status: "Error initializing database",
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/db/reset", async (req, res) => {
+  try {
+    // sécurité singe
+    if (process.env.NODE_ENV !== "DEVELOPMENT") {
+      return res.status(403).json({
+        status: "Forbidden",
+        error: "Database reset is not allowed in this environment",
+      });
+    }
+    const sure = req.query.sure;
+    if (sure !== "true") {
+      return res.status(400).json({
+        status: "Bad Request",
+        error: 'Please confirm reset by adding "?sure=true" to the request URL',
+      });
+    }
+    const sqlResetFile = fs.readFileSync(
+      path.join(__dirname, "../sql/reset.sql"),
+      "utf8"
+    );
+    await pool.query(sqlResetFile);
+
+    const sqlInitFile = fs.readFileSync(
+      path.join(__dirname, "../sql/init.sql"),
+      "utf8"
+    );
+    await pool.query(sqlInitFile);
+    res.json({ status: "Database initialized after reset" });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error resetting database",
       error: error.message,
     });
   }
