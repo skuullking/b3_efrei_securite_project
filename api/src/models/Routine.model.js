@@ -67,3 +67,5 @@ class Routine {
     return routine;
   }
 }
+
+module.exports = Routine;
