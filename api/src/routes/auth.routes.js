@@ -54,6 +54,26 @@ router.post("/register", AuthController.register);
 
 /**
  * @openapi
+ * /api/auth/register/admin:
+ *   post:
+ *    summary: Inscription d'un nouvel administrateur
+ *   tags: [Authentication]
+ *   requestBody:
+ *    required: true
+ *   content:
+ *    application/json:
+ *     schema:
+ *      type: object
+ *     required:
+ *      - name
+ *     - email
+ *    - password
+ *    properties:
+ */
+router.post("/register/admin", AuthController.registerAdmin);
+
+/**
+ * @openapi
  * /api/auth/login:
  *   post:
  *     summary: Connexion utilisateur
