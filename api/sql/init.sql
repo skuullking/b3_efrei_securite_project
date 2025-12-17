@@ -8,7 +8,7 @@ CREATE TABLE
         pseudonym VARCHAR(100) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
-        roles VARCHAR(100) NOT NULL DEFAULT 'user',
+        role VARCHAR(100) NOT NULL DEFAULT 'USER',
         birthdate DATE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
