@@ -149,6 +149,80 @@ const components = {
         },
       },
     },
+    Routine: {
+      type: "object",
+      properties: {
+        _id: { type: "string", description: "ID unique de la routine" },
+        userId: {
+          type: "integer",
+          description: "ID de l'utilisateur propriétaire de la routine",
+        },
+        workoutId: {
+          type: "string",
+          description: "ID du workout associé à la routine",
+        },
+        cron: {
+          type: "string",
+          description: "Expression CRON pour la planification de la routine",
+          example: "0 8 * * 1,3,5",
+        },
+        timezone: {
+          type: "string",
+          description: "Timezone pour l'exécution de la routine",
+          default: "Europe/Paris",
+          example: "Europe/Paris",
+        },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+      },
+    },
+    RoutineInput: {
+      type: "object",
+      required: ["userId", "workoutId", "cron"],
+      properties: {
+        userId: {
+          type: "integer",
+          description: "ID de l'utilisateur",
+          example: 1,
+        },
+        workoutId: {
+          type: "string",
+          description: "ID du workout (MongoDB ObjectId)",
+          example: "64abc123def456789012345",
+        },
+        cron: {
+          type: "string",
+          description:
+            "Expression CRON (format: minute heure jour mois jour-semaine)",
+          example: "0 8 * * 1,3,5",
+        },
+        timezone: {
+          type: "string",
+          description: "Timezone (optionnel, défaut: Europe/Paris)",
+          example: "Europe/Paris",
+        },
+      },
+    },
+    RoutineUpdate: {
+      type: "object",
+      properties: {
+        workoutId: {
+          type: "string",
+          description: "ID du workout (MongoDB ObjectId)",
+          example: "64abc123def456789012345",
+        },
+        cron: {
+          type: "string",
+          description: "Expression CRON",
+          example: "0 9 * * 2,4,6",
+        },
+        timezone: {
+          type: "string",
+          description: "Timezone",
+          example: "America/New_York",
+        },
+      },
+    },
   },
 };
 
