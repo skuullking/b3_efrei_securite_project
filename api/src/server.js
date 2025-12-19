@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config(); // Must be first
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -7,7 +8,6 @@ const cors = require("cors");
 const PORT = process.env.PORT || 3000;
 const { pool } = require("./config/db.postgres");
 const { connectMongo } = require("./config/db.mongo");
-require("dotenv").config();
 const {
   helmetConfig,
   apiLimiter,
@@ -19,15 +19,10 @@ const { sanitizeXSS } = require("./middlewares/xss.middleware");
 app.use(forceHTTPS);
 
 // Configuration CORS
-app.use(
-  cors()
-  // {
-  // origin: process.env.CLIENT_URL || "http://localhost:3001",
-  // credentials: true,
-  // methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  // allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
-  // }
-);
+app.use(cors({
+  origin: ["https://b3-efrei-securite-project.vercel.app", "http://localhost:5173"], // Ton lien Vercel + Localhost pour dev
+  credentials: true
+}));
 
 app.use(helmetConfig);
 app.use(apiLimiter);
