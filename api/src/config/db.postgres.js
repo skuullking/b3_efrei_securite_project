@@ -2,7 +2,9 @@ const { Pool } = require("pg");
 require("dotenv").config();
 
 if (!process.env.PGPASSWORD) {
-  console.warn("⚠️  Attention: PGPASSWORD n'est pas défini dans le fichier .env");
+  console.warn(
+    "⚠️  Attention: PGPASSWORD n'est pas défini dans le fichier .env"
+  );
 }
 
 const pool = new Pool({
@@ -10,9 +12,13 @@ const pool = new Pool({
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   database: process.env.PGNAME || process.env.PGDATABASE, // Support both names
-  password: process.env.PGPASSWORD || "", // Prevent 'must be a string' error
   port: process.env.PGPORT,
-  ssl: process.env.PGHOST !== 'localhost' ? { rejectUnauthorized: false } : false, // Enable SSL for remote hosts (Supabase)
+  ssl:
+    process.env.PGSSLMODE === "disable"
+      ? false
+      : process.env.PGHOST !== "localhost"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
 exports.pool = pool;
