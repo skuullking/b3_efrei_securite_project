@@ -468,6 +468,7 @@ const EditSession: React.FC = () => {
               ))}
             </div>
           )}
+        </div>
       </main>
 
       <div className="fixed bottom-6 left-0 right-0 z-40 px-6 flex justify-center">
